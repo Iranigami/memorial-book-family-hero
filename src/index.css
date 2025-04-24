@@ -1,0 +1,71 @@
+@import "tailwindcss";
+
+@theme {
+  --font-roboto: "Roboto Slab", serif;
+  --color-red: #e60004;
+  --color-red-accent: #80011f;
+  --color-red-secondary: #ffeff3;
+  --color-beach: #fff9e0;
+  --color-black-primary: #2b2a29;
+  --color-black-secondary: #464444;
+  --color-black-third: #8b8785;
+  --color-black-bg: #f6f5f5;
+}
+
+:root {
+  font-family: system-ui, Avenir, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+
+  color-scheme: light dark;
+  color: rgba(255, 255, 255, 0.87);
+  background-color: #f2e5cc;
+
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+a {
+  font-weight: 500;
+  color: #646cff;
+  text-decoration: inherit;
+}
+a:hover {
+  color: #535bf2;
+}
+
+body {
+  margin: 0;
+  display: flex;
+  min-width: 320px;
+  min-height: 100vh;
+  justify-content: center;
+  background-image: url("./assets/images/bg.png");
+  background-size: cover;
+  background-position: top;
+}
+
+@layer base {
+  @font-face {
+    font-family: Roboto Slab;
+    font-weight: 400;
+    src: url(./assets/fonts/RobotoSlab-Regular.ttf);
+  }
+  @font-face {
+    font-family: Roboto Slab;
+    font-weight: 500;
+    src: url(./assets/fonts/RobotoSlab-Medium.ttf);
+  }
+  @font-face {
+    font-family: Roboto Slab;
+    font-weight: 600;
+    src: url(./assets/fonts/RobotoSlab-SemiBold.ttf);
+  }
+  @font-face {
+    font-family: Roboto Slab;
+    font-weight: 700;
+    src: url(./assets/fonts/RobotoSlab-Bold.ttf);
+  }
+}
