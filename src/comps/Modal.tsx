@@ -36,9 +36,7 @@ export default function Modal({ type, onDelete, onClose }: Props) {
               ? "Вы уверены, что хотите удалить награду?"
               : type === "success"
                 ? "Сведения о герое были успешно отправлеными в скором времени будут размещены в нашем архиве"
-                : type === "svo"
-                  ? "Наполнение информации будет доступно после окончания СВО"
-                  : "Обратитесь к администратору"}
+                : type}
           </div>
         </div>
         <div className="mt-[20px] lg:mt-[32px] mx-auto left-0 right-0 lg:flex lg:gap-[20px] justify-center">

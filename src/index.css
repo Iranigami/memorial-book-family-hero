@@ -27,13 +27,10 @@
   -moz-osx-font-smoothing: grayscale;
 }
 
-a {
-  font-weight: 500;
-  color: #646cff;
-  text-decoration: inherit;
-}
-a:hover {
-  color: #535bf2;
+.select-bg {
+  background-image: url(./assets/icons/arrDown.svg);
+  background-position: 98%;
+  background-repeat: no-repeat;
 }
 
 body {
@@ -68,4 +65,15 @@ body {
     font-weight: 700;
     src: url(./assets/fonts/RobotoSlab-Bold.ttf);
   }
+}
+
+.unselectable {
+  -moz-user-select: none;
+  -khtml-user-select: none;
+  -webkit-user-select: none;
+  user-select: none;
+}
+
+button {
+  cursor: pointer;
 }
