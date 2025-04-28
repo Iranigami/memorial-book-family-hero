@@ -21,7 +21,7 @@ export default function CustomInput({
     <div className={`relative z-1 ${className}`}>
       <div
         onClick={() => setOptionsOpen(!isOptionsOpen)}
-        className={`${value === initValue ? "text-black-third" : "text-black-primary"} unselectable w-full h-full select-bg lg:text-[16px] text-[14px] font-normal font-roboto rounded-[12px] flex justify-left items-center text-left lg:px-[20px] px-[12px] border border-black-secondary`}
+        className={`${value === initValue ? "text-black-third" : "text-black-primary"} unselectable w-full h-full select-bg lg:text-[16px] text-[14px] font-normal font-roboto rounded-[12px] flex justify-left items-center text-left lg:px-[20px] px-[12px]`}
       >
         {value}
       </div>

@@ -1,7 +1,8 @@
 export interface Award {
-  id: string;
-  yearAt: string;
-  description: string;
+  id: number | undefined;
+  title: string | null;
+  yearAt: string | null;
+  description: string | null;
 }
 
 export const categoriesList = <GettingData[]>[
@@ -70,7 +71,7 @@ export interface GettingData {
 }
 
 export interface Inputs {
-  images: string[];
+  images: File[];
   name: string;
   surname: string;
   patronymic: string;
@@ -80,11 +81,13 @@ export interface Inputs {
   birthDateAt: string;
   deathDateAt: string;
   additional: string;
-  archive: string[];
-  heroAward: Award[];
+  archive: File[];
+  heroAward: string;
   nameSender: string;
   surnameSender: string;
   patronymicSender: string;
   phone: string;
   institute: string;
 }
+
+export interface Image {}

@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import Form from "../comps/Form";
 import Header from "../comps/Header";
 import Modal from "../comps/Modal";
@@ -6,17 +6,23 @@ import Modal from "../comps/Modal";
 export default function Home() {
   const [isModalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState("");
+  const temp = useRef<number | undefined>(undefined);
+  const [deletedId, setDeletedId] = useState<number | undefined>(undefined);
   return (
     <>
       <Header />
       <Form
+        deletedAward={deletedId}
         onSubmitForm={() => {
           setModalType("success");
           setModalOpen(true);
         }}
-        onDeleteAward={() => {
-          setModalType("delete");
-          setModalOpen(true);
+        onDeleteAward={(id: number | undefined) => {
+          temp.current = id;
+          if (id != undefined) {
+            setModalType("delete");
+            setModalOpen(true);
+          }
         }}
         onErr={(text) => {
           setModalType(text);
@@ -31,7 +37,11 @@ export default function Home() {
         <Modal
           type={modalType}
           onClose={() => setModalOpen(false)}
-          onDelete={() => {}}
+          onDelete={() => {
+            setDeletedId(temp.current);
+            setModalOpen(false);
+            temp.current = undefined;
+          }}
         />
       )}
     </>

@@ -1,6 +1,6 @@
 import { useForm, SubmitHandler } from "react-hook-form";
 import questionIcon from "../assets/icons/questionIcon.svg";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Award, categoriesList, GettingData, Inputs } from "../types";
 import add from "../assets/icons/addIcon.svg";
 import { useNavigate } from "react-router-dom";
@@ -9,14 +9,22 @@ import CustomInput from "./CustomInput";
 import addButton from "../assets/icons/addButton.svg";
 import trashBin from "../assets/icons/trashBin.svg";
 import Hint from "./Hint";
+import arrNext from "../assets/icons/arrNext.svg";
+import closeIcon from "../assets/icons/closeIcon.svg";
 
 type Props = {
   onSubmitForm: () => void;
-  onDeleteAward: () => void;
+  onDeleteAward: (id: number | undefined) => void;
   onErr: (error: string) => void;
+  deletedAward: number | undefined;
 };
 
-export default function Form({ onSubmitForm, onDeleteAward, onErr }: Props) {
+export default function Form({
+  onSubmitForm,
+  onDeleteAward,
+  onErr,
+  deletedAward,
+}: Props) {
   const navigate = useNavigate();
   const [isLoading, setLoading] = useState(true);
   const {
@@ -27,22 +35,43 @@ export default function Form({ onSubmitForm, onDeleteAward, onErr }: Props) {
   } = useForm<Inputs>();
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
+    data.heroAward = JSON.stringify(awards);
+    data.archive = archive;
+    data.images = images;
+
     if (data.category === "Герои СВО") {
       onErr("Наполнение информации будет доступно после окончания СВО");
-      console.log(data);
       return;
     }
-    onSubmitForm();
-    console.log(data);
+    axios
+      .post(
+        "https://book-memory-admin.itlabs.top/api/application_forms/add",
+        data,
+        { headers: { "Content-Type": "multipart/form-data" } },
+      )
+      .then(function (response) {
+        onSubmitForm();
+      })
+      .catch(function (error) {
+        onErr(error.message);
+      });
   };
 
   const [awardsList, setAwardsList] = useState<GettingData[]>([]);
+  const currentAward = useRef<Award>({
+    id: 0,
+    title: null,
+    yearAt: "",
+    description: "",
+  });
+  const [shownImage, setShownImage] = useState(0);
   const [institutionsList, setInstitutionsList] = useState<GettingData[]>([]);
   const [ranksList, setRanksList] = useState<GettingData[]>([]);
   const [archive, setArchive] = useState<File[]>([]);
   const [images, setImages] = useState<File[]>([]);
   const [awards, setAwards] = useState<Award[]>([]);
-  const [currentCategorie, setCurrentCategorie] = useState<string>();
+  const [currentCategory, setCurrentCategory] = useState<string>();
+  const [awardError, setAwardError] = useState(false);
 
   useEffect(() => {
     setLoading(true);
@@ -64,6 +93,13 @@ export default function Form({ onSubmitForm, onDeleteAward, onErr }: Props) {
     setLoading(false);
   }, []);
 
+  useEffect(() => {
+    if (deletedAward !== undefined && awards.length > deletedAward) {
+      setAwards(awards.filter((_, idx) => idx !== deletedAward));
+    }
+    onDeleteAward(undefined);
+  }, [deletedAward]);
+
   return (
     <>
       {!isLoading && (
@@ -74,12 +110,23 @@ export default function Form({ onSubmitForm, onDeleteAward, onErr }: Props) {
           <div className="lg:flex xl:gap-[20px] lg:gap-[24px]">
             <div className="xl:w-[396px] xl:h-[563px] lg:w-[436px] lg:h-[582px] w-[328px] h-[460px]">
               <label>
-                <input hidden={true} type="file" className="appearance-none" />
+                <input
+                  hidden={true}
+                  id="imgInput"
+                  type="file"
+                  className="appearance-none"
+                  onChange={(event) => {
+                    setImages((prevImages) => [
+                      ...prevImages,
+                      ...Array.from(event.target.files!),
+                    ]);
+                  }}
+                />
                 {images.length === 0 && (
                   <div className="xl:size-[396px] lg:size-[436px] size-[328px] border border-dashed border-black-secondary rounded-[12px] place-content-center text-center">
                     <img src={addButton} alt="add photo" className="mx-auto" />
                     <div className="font-roboto font-normal text-[16px] leading-[100%] tracking-[0px] text-center text-black-secondary mt-[16px]">
-                      Перетещите изображение сюда.{" "}
+                      Перетещите изображение сюда.
                     </div>
                     <div className="font-roboto font-normal text-[12px] leading-[100%] tracking-[0px] text-center text-black-third mt-[8px]">
                       Рекомендуемый размер фотографии 400х400px
@@ -87,21 +134,60 @@ export default function Form({ onSubmitForm, onDeleteAward, onErr }: Props) {
                   </div>
                 )}
               </label>
-              {/*добавить загруженные фото*/}
+              {images.length !== 0 && (
+                <div className="xl:size-[396px] lg:size-[436px] size-[328px] rounded-[12px] place-content-center text-center flex relative overflow-clip">
+                  <button
+                    type="button"
+                    className={`size-[48px] disabled:opacity-[50%] absolute left-0 flex justify-center items-center top-0 bottom-0 my-auto`}
+                    disabled={shownImage === 0}
+                    onClick={() => {
+                      setShownImage(shownImage - 1);
+                    }}
+                  >
+                    <img src={arrNext} alt="prev" />
+                  </button>
+                  <img
+                    src={URL.createObjectURL(images[shownImage])}
+                    className="object-contain"
+                  />
+                  <button
+                    type="button"
+                    className={`size-[48px] disabled:opacity-[50%] absolute right-0 flex justify-center items-center top-0 bottom-0 my-auto`}
+                    disabled={shownImage === images.length - 1}
+                    onClick={() => {
+                      setShownImage(shownImage + 1);
+                    }}
+                  >
+                    <img src={arrNext} alt="prev" className="rotate-180" />
+                  </button>
+                </div>
+              )}
               <div className="flex gap-[20px] lg:mt-[20px] mt-[16px]">
                 <button
+                  onClick={() => {
+                    document.getElementById("imgInput")?.click();
+                  }}
+                  type="button"
                   disabled={images.length >= 10}
                   className="disabled:bg-[#80011F32] xl:w-[312px] lg:w-[352px] w-[244px] h-[64px] rounded-[12px] bg-red-accent flex uppercase justify-center items-center text-white font-roboto font-bold lg:text-[18px] text-[16px] leading-[100%] lg:tracking-[2.16px] tracking-[1.92px] text-center"
                 >
                   Загрузить фото
                 </button>
                 <button
+                  type="button"
                   disabled={images.length === 0}
-                  onClick={() => {}}
+                  onClick={() => {
+                    setImages(images.filter((_, idx) => idx !== shownImage));
+                    if (shownImage !== 0) setShownImage(shownImage - 1);
+                  }}
                   className="disabled:opacity-[50%] size-[64px] rounded-[12px] bg-beach flex justify-center items-center"
                 >
                   <img src={trashBin} alt="delete" className="" />
                 </button>
+              </div>
+              <div className="font-roboto font-normal lg:text-[16px] text-[14px] leading-[100%] tracking-[0px] text-black-secondary mt-[20px]">
+                Можно загрузить до 10 шт. Разрешённые типы файлов: .jpg .png .
+                Максимальный размер фото: 8 МБ
               </div>
             </div>
             <div className="xl:w-[812px] xl:h-[258px] lg:w-[436px] lg:h-[520px] lg:mt-0 mt-[24px] text-black-primary">
@@ -117,8 +203,13 @@ export default function Form({ onSubmitForm, onDeleteAward, onErr }: Props) {
                     placeholder="Константинопольская"
                     autoComplete="off"
                     {...register("surname", { required: true })}
-                    className="xl:w-[396px] lg:w-[436px] w-[328px] lg:h-[61px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-center items-center text-left lg:pl-[20px] pl-[12px] border border-black-secondary"
+                    className={`xl:w-[396px] lg:w-[436px] w-[328px] lg:h-[61px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-center items-center text-left lg:pl-[20px] pl-[12px] border ${errors.surname ? "border-red" : "border-black-secondary"}`}
                   />
+                  {errors.surname && (
+                    <div className="font-roboto font-normal text-[12px] text-red">
+                      Поле обязательно к заполнению
+                    </div>
+                  )}
                 </div>
                 <div className="xl:mt-0 lg:mt-[27px] mt-[24px]">
                   <div className="gap-[16px] xl:text-[24px] text-[20px] justify-left flex font-roboto leading-[100%] font-bold">
@@ -129,8 +220,13 @@ export default function Form({ onSubmitForm, onDeleteAward, onErr }: Props) {
                     placeholder="Александра"
                     autoComplete="off"
                     {...register("name", { required: true })}
-                    className="xl:w-[396px] lg:w-[436px] w-[328px] lg:h-[61px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-center items-center text-left lg:pl-[20px] pl-[12px] border border-black-secondary"
+                    className={`xl:w-[396px] lg:w-[436px] w-[328px] lg:h-[61px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-center items-center text-left lg:pl-[20px] pl-[12px] border ${errors.name ? "border-red" : "border-black-secondary"}`}
                   />
+                  {errors.name && (
+                    <div className="font-roboto font-normal text-[12px] text-red">
+                      Поле обязательно к заполнению
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="xl:flex gap-[20px] xl:mt-[40px] lg:mt-[27px] mt-[24px]">
@@ -172,35 +268,86 @@ export default function Form({ onSubmitForm, onDeleteAward, onErr }: Props) {
                   </div>
                   <div className="text-red-accent">*</div>
                   <img
+                    onMouseEnter={() => {
+                      if (document.getElementById("category") != null) {
+                        document.getElementById("category")!.hidden = false;
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      if (document.getElementById("category") != null) {
+                        document.getElementById("category")!.hidden = true;
+                      }
+                    }}
+                    onClick={() => {
+                      if (document.getElementById("category") != null) {
+                        document.getElementById("category")!.hidden = false;
+                        setTimeout(() => {
+                          document.getElementById("category")!.hidden = true;
+                        }, 3000);
+                      }
+                    }}
                     src={questionIcon}
                     alt="hint"
                     className={`absolute right-0 top-0 bottom-0 my-auto`}
+                  />
+                  <Hint
+                    id="category"
+                    text="Lorem Ipsum"
+                    className="translate-x-[-35px]"
                   />
                 </div>
                 <input
                   hidden={true}
                   {...register("category", { required: true })}
                 />
+
                 <CustomInput
                   initValue="Герои Великой Отечественнoй войны"
                   handleSelect={(value) => {
                     setValue("category", value);
-                    setCurrentCategorie(value);
+                    setCurrentCategory(value);
                   }}
-                  className="xl:w-[396px] lg:w-[436px] w-[328px] lg:h-[61px] h-[58px] mt-[16px]"
+                  className={`xl:w-[396px] lg:w-[436px] w-[328px] lg:h-[61px] h-[58px] mt-[16px] ${errors.category ? "border-red border rounded-[12px]" : "rounded-[12px] border border-black-secondary"}`}
                   options={categoriesList}
                 />
+                {errors.category && (
+                  <div className="font-roboto font-normal text-[12px] text-red">
+                    Поле обязательно к заполнению
+                  </div>
+                )}
               </div>
               <div className="lg:mt-0 mt-[24px] z-10">
                 <div className="gap-[16px] xl:text-[24px] text-[20px] justify-left flex font-roboto leading-[100%] font-bold relative">
                   <div className="text-black-primary tracking-[0px]">
                     Воинское звание
                   </div>
-                  <div className="text-red-accent">*</div>
                   <img
+                    onMouseEnter={() => {
+                      if (document.getElementById("rank") != null) {
+                        document.getElementById("rank")!.hidden = false;
+                      }
+                    }}
+                    onMouseLeave={() => {
+                      if (document.getElementById("rank") != null) {
+                        document.getElementById("rank")!.hidden = true;
+                      }
+                    }}
+                    onClick={() => {
+                      if (document.getElementById("rank") != null) {
+                        document.getElementById("rank")!.hidden = false;
+                        setTimeout(() => {
+                          document.getElementById("rank")!.hidden = true;
+                        }, 3000);
+                      }
+                    }}
                     src={questionIcon}
                     alt="hint"
                     className={`absolute right-0 top-0 bottom-0 my-auto`}
+                  />
+                  <Hint
+                    id="rank"
+                    text="Lorem Ipsum"
+                    className="translate-x-[-40px]"
                   />
                 </div>
                 <input hidden={true} {...register("militaryRank")} />
@@ -209,9 +356,9 @@ export default function Form({ onSubmitForm, onDeleteAward, onErr }: Props) {
                   handleSelect={(value) => {
                     setValue("militaryRank", value);
                   }}
-                  className="z-[0] xl:w-[396px] lg:w-[436px] w-[328px] lg:h-[61px] h-[58px] mt-[16px]"
+                  className="z-[0] xl:w-[396px] lg:w-[436px] w-[328px] lg:h-[61px] h-[58px] mt-[16px] rounded-[12px] border border-black-secondary"
                   options={ranksList.filter(
-                    (rank) => rank.category === currentCategorie,
+                    (rank) => rank.category === currentCategory,
                   )}
                 />
               </div>
@@ -245,16 +392,39 @@ export default function Form({ onSubmitForm, onDeleteAward, onErr }: Props) {
             <div className="text-black-primary tracking-[0px] xl:text-[24px] text-[20px] justify-left items-center flex font-roboto leading-[100%] font-bold">
               Дополнительные сведения
               <img
+                onMouseEnter={() => {
+                  if (document.getElementById("desc") != null) {
+                    document.getElementById("desc")!.hidden = false;
+                  }
+                }}
+                onMouseLeave={() => {
+                  if (document.getElementById("desc") != null) {
+                    document.getElementById("desc")!.hidden = true;
+                  }
+                }}
+                onClick={() => {
+                  if (document.getElementById("desc") != null) {
+                    document.getElementById("desc")!.hidden = false;
+                    setTimeout(() => {
+                      document.getElementById("desc")!.hidden = true;
+                    }, 3000);
+                  }
+                }}
                 src={questionIcon}
                 alt="hint"
                 className={`lg:ml-[32px] ml-[12px]`}
+              />
+              <Hint
+                id="desc"
+                text="Lorem Ipsum"
+                className="xl:translate-x-[-190px] lg:translate-x-[-260px] translate-x-[-150px] mt-[-30px]"
               />
             </div>
             <input
               {...register("additional")}
               autoComplete="off"
               placeholder="Биография и другие сведения"
-              className="text-black-primary xl:pl-[20px] pl-[16px] mt-[16px] xl:w-[1228px] lg:w-[896px] w-[328px] xl:h-[128px] lg:h-[128px] h-[128px] border border-black-secondary rounded-[12px] text-start flex justify-left content-start"
+              className="font-roboto font-normal text-black-primary xl:pl-[20px] pl-[16px] mt-[16px] xl:w-[1228px] lg:w-[896px] w-[328px] xl:h-[128px] lg:h-[128px] h-[128px] border border-black-secondary rounded-[12px] text-start flex justify-left content-start"
             />
           </div>
           <div className="lg:mt-[32px] mt-[24px] xl:w-[1228px] lg:w-[896px] w-[328px]">
@@ -265,7 +435,48 @@ export default function Form({ onSubmitForm, onDeleteAward, onErr }: Props) {
               Можно загрузить до 10 шт. Разрешённые типы файлов: .jpg .png .gif
               .mp4 . Максимальный размер фото: 8 МБ, видео: 100MБ.
             </div>
-            <div className="bg-red xl:w-[1228px] lg:w-[896px] w-[328px] lg:h-[144px] h-[128px] xl:mt-[20px] lg:mt-[24px] mt-[16px]" />
+            <div className="flex flex-nowrap xl:w-[1228px] lg:w-[896px] w-[328px] lg:h-[160px] h-[144px] xl:mt-[4px] lg:mt-[8px] gap-[24px] justify-left items-center overflow-x-auto">
+              <label className="shrink-0 lg:size-[144px] size-[128px] border-dashed border border-black-primary rounded-[12px] flex justify-center items-center mt-[16px]">
+                <input
+                  disabled={archive.length >= 10}
+                  hidden={true}
+                  id="archiveInput"
+                  type="file"
+                  className="appearance-none"
+                  onChange={(event) => {
+                    setArchive((prevArchive) => [
+                      ...prevArchive,
+                      ...Array.from(event.target.files!),
+                    ]);
+                  }}
+                />
+                <img
+                  src={addButton}
+                  alt="add"
+                  className={`size-[64px] ${archive.length >= 10 && "opacity-[50%]"}`}
+                />
+              </label>
+              {archive.map((memory: Blob, index: number) => (
+                <div
+                  key={index}
+                  className="mt-[16px] shrink-0 relative lg:size-[144px] size-[128px] rounded-[12px] place-content-center text-center flex relative"
+                >
+                  <img
+                    src={URL.createObjectURL(memory)}
+                    className="object-fit  lg:w-[144px] w-[128px] rounded-[12px]"
+                  />
+                  <button
+                    onClick={() => {
+                      setArchive(archive.filter((_, idx) => idx !== index));
+                    }}
+                    type="button"
+                    className="absolute size-[32px] right-[-16px] top-[-16px]"
+                  >
+                    <img src={closeIcon} alt="close" />
+                  </button>
+                </div>
+              ))}
+            </div>
           </div>
           <div className="xl:w-[1228px] lg:w-[896px] w-[328px] lg:my-[48px] my-[32px] h-[1px] bg-black-primary" />
           <div className="text-black-primary">
@@ -278,11 +489,109 @@ export default function Form({ onSubmitForm, onDeleteAward, onErr }: Props) {
             {awards.map((award: Award, index: number) => (
               <div
                 key={index}
-                className="lg:mt-[32px] mt-[24px] lg:flex bg-[#FCEFD6] rounded-[12px] xl:h-[292px] lg:h-[280px] h-[620px] lg:w-full w-[328px] mb-[16px] lg:mb-[24px] xl:mb-[20px]"
-              ></div>
+                className="lg:mt-[32px] mt-[24px] lg:flex  items-start justify-between bg-[#FCEFD6] rounded-[12px] xl:h-[292px] lg:h-[280px] h-[620px] lg:w-full w-[328px] xl:gap-[20px] lg:gap-[24px] lg:p-[24px] p-[16px]"
+              >
+                <div className="flex inline xl:w-[500px] xl:h-[244px] lg:w-[300px] lg:h-[248px] w-[296px] h-[240px]">
+                  <div className="w-full xl:text-[24px] text-[20px] justify-left font-roboto leading-[100%] font-bold">
+                    <span className="text-black-primary tracking-[0px]">
+                      Название награды
+                    </span>
+                    <span className="text-red-accent">&nbsp; &nbsp;*</span>
+                    <div className="xl:w-[500px] lg:w-[300px] w-[296px] h-[64px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-left items-center text-left lg:pl-[20px] pl-[12px] border border-black-secondary">
+                      {award.title}
+                    </div>
+                    <div className="text-black-primary tracking-[0px] mt-[20px]">
+                      Год выдачи награды
+                    </div>
+                    <div className="xl:w-[500px] lg:w-[300px] w-[296px] h-[64px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-left items-center text-left lg:pl-[20px] pl-[12px] border border-black-secondary">
+                      {award.yearAt}
+                    </div>
+                  </div>
+                </div>
+                <div className="xl:w-[544px] xl:h-[244px] lg:w-[436px] lg:h-[248px] w-[296px] h-[236px] font-roboto font-normal lg:mt-[-10px] mt-[16px]">
+                  <div className="text-black-primary tracking-[0px] xl:text-[24px] text-[20px] font-bold">
+                    Описание боевого подвига или заслуги
+                  </div>
+                  <div className="w-full mt-[16px] lg:h-[200px] h-[168px] border border-black-primary rounded-[12px] p-[16px] text-start">
+                    {award.description}
+                  </div>
+                </div>
+                <button
+                  onClick={() => onDeleteAward(index)}
+                  type="button"
+                  className="bg-[#FFF9E0] opacity-[100%] lg:w-[80px] lg:h-[244px] w-[296px] h-[80px] lg:mt-[0px] mt-[26px] rounded-[12px] flex justify-center items-center"
+                >
+                  <img src={trashBin} alt="delete" className="" />
+                </button>
+              </div>
             ))}
-            <div className="lg:mt-[32px] mt-[24px] lg:flex bg-[#FCEFD6] rounded-[12px] xl:h-[292px] lg:h-[280px] h-[620px] lg:w-full w-[328px]"></div>
-            <button className="lg:w-[396px] w-[328px] h-[64px] rounded-[12px] bg-red-accent float-right lg:mt-[32px] mt-[24px] flex justify-center items-center gap-[16px]">
+            <div className="lg:mt-[32px] mt-[24px] lg:flex  items-start justify-between bg-[#FCEFD6] rounded-[12px] xl:h-[292px] lg:h-[280px] h-[620px] lg:w-full w-[328px] xl:gap-[20px] lg:gap-[24px] lg:p-[24px] p-[16px]">
+              <div className="flex inline xl:w-[500px] xl:h-[244px] lg:w-[300px] lg:h-[248px] w-[296px] h-[240px]">
+                <div className="w-full xl:text-[24px] text-[20px] justify-left font-roboto leading-[100%] font-bold">
+                  <span className="text-black-primary tracking-[0px]">
+                    Название награды
+                  </span>
+                  <span className="text-red-accent">&nbsp; &nbsp;*</span>
+                  <CustomInput
+                    initValue="Кpасная звездa"
+                    handleSelect={(value) => {
+                      currentAward.current.title = value;
+                    }}
+                    className={`xl:w-[500px] lg:w-[300px] w-[296px] lg:h-[61px] h-[58px] lg:mt-[24px] mt-[16px] rounded-[12px] ${awardError ? "border border-red" : "border border-black-primary"}`}
+                    options={awardsList.filter(
+                      (award) => award.category === currentCategory,
+                    )}
+                  />
+                  <div className="text-black-primary tracking-[0px] mt-[20px]">
+                    Год выдачи награды
+                  </div>
+                  <input
+                    placeholder="1945"
+                    onChange={(event) => {
+                      currentAward.current.yearAt = event.target.value;
+                    }}
+                    className="xl:w-[500px] lg:w-[300px] w-[296px] h-[64px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-center items-center text-left lg:pl-[20px] pl-[12px] border border-black-secondary"
+                  />
+                </div>
+              </div>
+              <div className="xl:w-[544px] xl:h-[244px] lg:w-[436px] lg:h-[248px] w-[296px] h-[236px] font-roboto font-normal lg:mt-[-10px] mt-[16px]">
+                <div className="text-black-primary tracking-[0px] xl:text-[24px] text-[20px] font-bold">
+                  Описание боевого подвига или заслуги
+                </div>
+                <input
+                  onChange={(event) => {
+                    currentAward.current.description = event.target.value;
+                  }}
+                  placeholder="Дополнительные сведения"
+                  className="w-full mt-[16px] lg:h-[200px] h-[168px] border border-black-primary rounded-[12px] p-[16px] text-start "
+                />
+              </div>
+              <button
+                type="button"
+                disabled={true}
+                className="bg-[#FFF9E0] opacity-[50%] lg:w-[80px] lg:h-[244px] w-[296px] h-[80px] lg:mt-[0px] mt-[26px] rounded-[12px] flex justify-center items-center"
+              >
+                <img src={trashBin} alt="delete" className="" />
+              </button>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                if (currentAward.current.title === null) setAwardError(true);
+                else {
+                  currentAward.current.id = awards.length;
+                  setAwards([...awards, currentAward.current]);
+                  currentAward.current = {
+                    id: undefined,
+                    title: null,
+                    yearAt: "",
+                    description: "",
+                  };
+                  setAwardError(false);
+                }
+              }}
+              className="lg:w-[396px] w-[328px] h-[64px] rounded-[12px] bg-red-accent float-right lg:mt-[32px] mt-[24px] flex justify-center items-center gap-[16px]"
+            >
               <img src={add} alt="add" className="size-[24px]" />
               <div className="text-white font-roboto font-bold lg:text-[18px] text-[16px] leading-[100%] lg:tracking-[2.16px] tracking-[1.92px] text-center uppercase">
                 Добавить награду
@@ -306,10 +615,16 @@ export default function Form({ onSubmitForm, onDeleteAward, onErr }: Props) {
                   <div className="text-red-accent">*</div>
                 </div>
                 <input
+                  placeholder="Романов"
                   autoComplete="off"
                   {...register("surnameSender", { required: true })}
-                  className="xl:w-[396px] lg:w-[436px] w-[328px] h-[64px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-center items-center text-left lg:pl-[20px] pl-[12px] border border-black-secondary"
+                  className={`${errors.surnameSender ? "border-red" : "border-black-secondary"} xl:w-[396px] lg:w-[436px] w-[328px] h-[64px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-center items-center text-left lg:pl-[20px] pl-[12px] border`}
                 />
+                {errors.surnameSender && (
+                  <div className="font-roboto font-normal text-[12px] text-red">
+                    Поле обязательно к заполнению
+                  </div>
+                )}
               </div>
               <div>
                 <div className="gap-[16px] xl:text-[24px] text-[20px] justify-left flex font-roboto leading-[100%] font-bold">
@@ -317,10 +632,16 @@ export default function Form({ onSubmitForm, onDeleteAward, onErr }: Props) {
                   <div className="text-red-accent">*</div>
                 </div>
                 <input
+                  placeholder="Иван"
                   autoComplete="off"
                   {...register("nameSender", { required: true })}
-                  className="xl:w-[396px] lg:w-[436px] w-[328px] h-[64px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-center items-center text-left lg:pl-[20px] pl-[12px] border border-black-secondary"
+                  className={`${errors.nameSender ? "border-red" : "border-black-secondary"} xl:w-[396px] lg:w-[436px] w-[328px] h-[64px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-center items-center text-left lg:pl-[20px] pl-[12px] border`}
                 />
+                {errors.nameSender && (
+                  <div className="font-roboto font-normal text-[12px] text-red">
+                    Поле обязательно к заполнению
+                  </div>
+                )}
               </div>
               <div>
                 <div className="gap-[16px] xl:text-[24px] text-[20px] justify-left flex font-roboto leading-[100%] font-bold">
@@ -330,6 +651,7 @@ export default function Form({ onSubmitForm, onDeleteAward, onErr }: Props) {
                 </div>
                 <input
                   autoComplete="off"
+                  placeholder="Иванович"
                   {...register("patronymicSender")}
                   className="xl:w-[396px] lg:w-[436px] w-[328px] h-[64px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-center items-center text-left lg:pl-[20px] pl-[12px] border border-black-secondary"
                 />
@@ -342,10 +664,16 @@ export default function Form({ onSubmitForm, onDeleteAward, onErr }: Props) {
                   <div className="text-red-accent">*</div>
                 </div>
                 <input
+                  placeholder="+7 (912) 999 99-99"
                   autoComplete="off"
                   {...register("phone", { required: true })}
-                  className="xl:w-[396px] lg:w-[436px] w-[328px] h-[64px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-center items-center text-left lg:pl-[20px] pl-[12px] border border-black-secondary"
+                  className={`${errors.phone ? "border-red" : "border-black-secondary"} xl:w-[396px] lg:w-[436px] w-[328px] h-[64px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-center items-center text-left lg:pl-[20px] pl-[12px] border`}
                 />
+                {errors.phone && (
+                  <div className="font-roboto font-normal text-[12px] text-red">
+                    Поле обязательно к заполнению
+                  </div>
+                )}
               </div>
               <div>
                 <div className="gap-[16px] xl:text-[24px] text-[20px] justify-left flex font-roboto leading-[100%] font-bold relative">
@@ -382,8 +710,21 @@ export default function Form({ onSubmitForm, onDeleteAward, onErr }: Props) {
                 <input
                   autoComplete="off"
                   {...register("institute", { required: true })}
-                  className="xl:w-[396px] lg:w-[436px] w-[328px] h-[64px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-center items-center text-left lg:pl-[20px] pl-[12px] border border-black-secondary"
+                  hidden={true}
                 />
+                <CustomInput
+                  initValue="Название организации"
+                  handleSelect={(value) => {
+                    setValue("institute", value);
+                  }}
+                  className={`z-[0] xl:w-[396px] lg:w-[436px] w-[328px] lg:h-[61px] h-[58px] mt-[16px] rounded-[12px] ${errors.institute ? "border border-red" : "border border-black-primary"}`}
+                  options={institutionsList}
+                />
+                {errors.institute && (
+                  <div className="font-roboto font-normal text-[12px] text-red">
+                    Поле обязательно к заполнению
+                  </div>
+                )}
               </div>
             </div>
             <div className="lg:flex mt-[24px] lg:mt-[48px] lg:flex-row-reverse mb-[40px] justify-between">
@@ -409,7 +750,7 @@ export default function Form({ onSubmitForm, onDeleteAward, onErr }: Props) {
         </form>
       )}
       {isLoading && (
-        <div className="w-[30px] h-[30px] outline outline-dotted outline-red-accent outline-[10px] rounded-full animate-spin mx-auto mt-[100px]" />
+        <div className="w-[30px] h-[30px] border border-dotted border-red-accent border-[10px] rounded-full animate-spin mx-auto mt-[100px]" />
       )}
     </>
   );
