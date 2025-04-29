@@ -1,75 +1,62 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import CustomInput from "./CustomInput";
+import { GettingData } from "../types";
 
 const months = [
-  "Январь",
-  "Февраль",
-  "Март",
-  "Апрель",
-  "Май",
-  "Июнь",
-  "Июль",
-  "Август",
-  "Сентябрь",
-  "Октябрь",
-  "Ноябрь",
-  "Декабрь",
+  {title: "Нет"},
+  {title: "Январь"}, 
+  {title: "Февраль"},
+  {title: "Март"},
+  {title: "Апрель"}, 
+  {title: "Май"}, 
+  {title: "Июнь"},
+  {title: "Июль"},
+  {title: "Август"}, 
+  {title: "Сентябрь"},
+  {title: "Октябрь"},
+  {title: "Ноябрь"},
+  {title: "Декабрь"},
 ];
 
-const years = Array.from({ length: 111 }, (_, i) => ({
-  title: `${new Date().getFullYear() - 100 + i}`,
-}));
+const days:GettingData[] = [{title: "Нет"}];
 
-// Функция для определения количества дней в заданном месяце/году
-const getDaysInMonth = (year: number, monthIndex: number) => {
-  const lastDayOfNextMonth = new Date(year, monthIndex + 1, 0); // Дата следующего месяца 0-го числа даст кол-во дней предыдущего месяца
-  return lastDayOfNextMonth.getDate(); // Возвращаем количество дней
-};
+for(let i = 1; i <= 31; i++)
+  days.push({title: String(i)});
 
-// Генерируем дни конкретного месяца
-const generateDaysForMonth = (year: number, monthTitle: string) => {
-  const monthIndex = months.indexOf(monthTitle); // Индекс месяца
-  if (monthIndex === -1) return [];
-  const numberOfDays = getDaysInMonth(year, monthIndex); // Определяем количество дней
-  return Array.from({ length: numberOfDays }, (_, i) => ({
-    title: `${i + 1}`,
-  }));
-};
 
-export default function DatePicker() {
-  const [day, setDay] = useState("");
-  const [month, setMonth] = useState("");
-  const [year, setYear] = useState(0);
+const years:GettingData[] = [];
 
-  const days = year && month ? generateDaysForMonth(year, month) : []; // Динамическое формирование дней
-  const availableMonths = months.map((m) => ({ title: m }));
+for(let i = 2025; i > 1850; i--)
+  years.push({title: String(i)});
 
+type Props = {
+  setDate: (date: string) => void
+}
+
+export default function DatePicker({setDate}: Props) {
+  const formatDate = (totalDate: {day: string, month: string, year: string}) => {
+    if(!totalDate.month || totalDate.month==="Нет")
+      {
+        return(totalDate.year);
+      }
+      else
+        if(!totalDate.day || totalDate.day ==="Нет") 
+          return(totalDate.month + ", " + totalDate.year);
+        else {
+          var formattedMonth = totalDate.month.toLowerCase();
+          formattedMonth = formattedMonth.replace("ь", "я");
+          formattedMonth = formattedMonth.replace("й", "я");
+          if (formattedMonth[formattedMonth.length-1]!== "я")
+            formattedMonth = formattedMonth.concat("a");
+          return(totalDate.day + " " + formattedMonth + " " + totalDate.year)
+        }
+  }
+  const currentDate = useRef({day: "", month: "", year: ""})
   return (
-    <div className="flex gap-[8px]">
-      <CustomInput
-        className=""
-        options={days}
-        handleSelect={(selected) => setDay(selected.title)}
-        initValue="День"
-      />
-      <CustomInput
-        className=""
-        options={availableMonths}
-        handleSelect={(selected) => {
-          setMonth(selected.title);
-          setDay(null);
-        }} // Меняем месяц
-        initValue={"Месяц"}
-      />
-      <CustomInput
-        className=""
-        options={years}
-        handleSelect={(selected) => {
-          setYear(parseInt(selected.title));
-          setDay(null);
-        }} // Сохраняем числовой год
-        initValue={"Год"}
-      />
+    <div className="flex gap-[8px] mt-[16px] relative z-0">
+      <CustomInput options={days} handleSelect={(day)=>{currentDate.current.day = day; setDate(formatDate(currentDate.current))}} initValue={"День"} className="xl:w-[106px] xl:h-[64px] border border-black-secondary rounded-[12px]"/>
+      <CustomInput options={months} handleSelect={(month)=>{currentDate.current.month = month; setDate(formatDate(currentDate.current))}} initValue={"Месяц"} className="xl:w-[158px] xl:h-[64px] border border-black-secondary rounded-[12px]" />
+      <CustomInput options={years} handleSelect={(year)=>{currentDate.current.year = year; setDate(formatDate(currentDate.current))}} initValue={"Год"} className="xl:w-[116px] xl:h-[64px] border border-black-secondary rounded-[12px]" />
     </div>
   );
 }

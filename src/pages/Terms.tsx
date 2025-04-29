@@ -5,7 +5,7 @@ import axios from "axios";
 
 export default function Terms() {
   const navigate = useNavigate();
-  const [loading, setLoading] = useState(true);
+  const [isLoading, setLoading] = useState(true);
   useEffect(() => {
     setLoading(true);
     const apiUrl = `https://book-memory-admin.itlabs.top/api/personal_data_accepts`;
@@ -17,6 +17,9 @@ export default function Terms() {
 
   return (
     <div className="w-[328px] lg:w-[896px] xl:w-[1228px] mt-[40px]">
+      {isLoading && (
+        <div className="w-[50px] h-[50px] outline outline-dotted outline-black-third outline-[10px] rounded-full animate-spin absolute left-0 right-0 mx-auto mt-[180px]" />
+      )}
       <div className="flex justify-between items-center">
         <button
           className="font-roboto font-bold leading-[100%] tracking-[0px] uppercase xl:w-[188px] xl:h-[64px] xl:rounded-[12px] lg:w-[141px] lg:h-[48px] lg:rounded-[9px] rounded-[6px] w-[120px] h-[32px] bg-red-accent flex justify-center items-center xl:gap-[16px] lg:gap-[12px] gap-[8px] xl:text-[18px] lg:text-[13.5px] text-[9px]"

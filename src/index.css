@@ -29,7 +29,7 @@
 
 .select-bg {
   background-image: url(./assets/icons/arrDown.svg);
-  background-position: 98%;
+  background-position: calc(100% - 16px);
   background-repeat: no-repeat;
 }
 
