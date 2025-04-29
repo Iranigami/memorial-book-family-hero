@@ -11,10 +11,9 @@ import trashBin from "../assets/icons/trashBin.svg";
 import Hint from "./Hint";
 import arrNext from "../assets/icons/arrNext.svg";
 import closeIcon from "../assets/icons/closeIcon.svg";
-import video from "../assets/icons/video.svg"
+import video from "../assets/icons/video.svg";
 import DatePicker from "./DatePicker";
 import Modal from "./Modal";
-
 
 export default function Form() {
   const navigate = useNavigate();
@@ -39,11 +38,9 @@ export default function Form() {
       return;
     }
     axios
-      .post(
-        `${apiUrl}application_forms/add`,
-        data,
-        { headers: { "Content-Type": "multipart/form-data" } },
-      )
+      .post(`${apiUrl}application_forms/add`, data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
       .then(function () {
         setModalType("success");
         setModalOpen(true);
@@ -71,25 +68,19 @@ export default function Form() {
   const [currentCategory, setCurrentCategory] = useState<string>();
   const [awardInput, setAwardInput] = useState(false); //for reset award input
   const [awardError, setAwardError] = useState(false);
-  const deleteId = useRef<number|null>(null);
+  const deleteId = useRef<number | null>(null);
 
   useEffect(() => {
     setLoading(true);
-    axios
-      .get(`${apiUrl}hero_awards`)
-      .then((response) => {
-        setAwardsList(response.data);
-      });
-    axios
-      .get(`${apiUrl}institutions`)
-      .then((response) => {
-        setInstitutionsList(response.data);
-      });
-    axios
-      .get(`${apiUrl}military_ranks`)
-      .then((response) => {
-        setRanksList(response.data);
-      });
+    axios.get(`${apiUrl}hero_awards`).then((response) => {
+      setAwardsList(response.data);
+    });
+    axios.get(`${apiUrl}institutions`).then((response) => {
+      setInstitutionsList(response.data);
+    });
+    axios.get(`${apiUrl}military_ranks`).then((response) => {
+      setRanksList(response.data);
+    });
     setLoading(false);
   }, []);
 
@@ -113,8 +104,11 @@ export default function Form() {
                   type="file"
                   className="xl:size-[396px] lg:size-[436px] size-[328px] absolute opacity-0"
                   onChange={(event) => {
-                    if(event.target.files && event.target.files[0].size>8388608)
-                      alert("Слишком большой файл")
+                    if (
+                      event.target.files &&
+                      event.target.files[0].size > 8388608
+                    )
+                      alert("Слишком большой файл");
                     else
                       setImages((prevImages) => [
                         ...prevImages,
@@ -375,7 +369,7 @@ export default function Form() {
                   autoComplete="off"
                   className="xl:w-[396px] lg:w-[436px] w-[328px] lg:h-[61px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-center items-center text-left lg:pl-[20px] pl-[12px] border border-black-secondary"
                 />
-                <DatePicker setDate={(date)=>setValue("birthDateAt", date)}/>
+                <DatePicker setDate={(date) => setValue("birthDateAt", date)} />
               </div>
               <div className="lg:mt-0 mt-[24px]">
                 <div className="gap-[16px] xl:text-[24px] text-[20px] justify-left flex font-roboto leading-[100%] font-bold">
@@ -388,7 +382,7 @@ export default function Form() {
                   autoComplete="off"
                   className="xl:w-[396px] lg:w-[436px] w-[328px] lg:h-[61px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-center items-center text-left lg:pl-[20px] pl-[12px] border border-black-secondary"
                 />
-                <DatePicker setDate={(date)=>setValue("deathDateAt", date)}/>
+                <DatePicker setDate={(date) => setValue("deathDateAt", date)} />
               </div>
             </div>
           </div>
@@ -450,8 +444,12 @@ export default function Form() {
                   className="appearance-none"
                   onChange={(event) => {
                     const file = event.target.files![0];
-                    if(file && (file.size>104857600 || file.type !== "video/mp4" && file.size>8388608))
-                      alert("Слишком большой файл")
+                    if (
+                      file &&
+                      (file.size > 104857600 ||
+                        (file.type !== "video/mp4" && file.size > 8388608))
+                    )
+                      alert("Слишком большой файл");
                     else
                       setArchive((prevArchive) => [
                         ...prevArchive,
@@ -471,7 +469,11 @@ export default function Form() {
                   className="mt-[16px] shrink-0 relative lg:size-[144px] size-[128px] rounded-[12px] place-content-center text-center flex relative"
                 >
                   <img
-                    src={memory.type==="video/mp4" ? video : URL.createObjectURL(memory)}
+                    src={
+                      memory.type === "video/mp4"
+                        ? video
+                        : URL.createObjectURL(memory)
+                    }
                     className="object-fit  lg:w-[144px] w-[128px] rounded-[12px]"
                   />
                   <button
@@ -546,7 +548,7 @@ export default function Form() {
                   </span>
                   <span className="text-red-accent">&nbsp; &nbsp;*</span>
                   <CustomInput
-                    unchanged = {awardInput}
+                    unchanged={awardInput}
                     initValue="Кpасная звездa"
                     handleSelect={(value) => {
                       setAwardInput(false);
@@ -597,8 +599,12 @@ export default function Form() {
                 if (currentAward.current.title === null) setAwardError(true);
                 else {
                   setAwardInput(true);
-                  (document.getElementById("awardDesc") as HTMLInputElement).value = "";
-                  (document.getElementById("awardYear") as HTMLInputElement).value = "";
+                  (
+                    document.getElementById("awardDesc") as HTMLInputElement
+                  ).value = "";
+                  (
+                    document.getElementById("awardYear") as HTMLInputElement
+                  ).value = "";
                   currentAward.current.id = awards.length;
                   setAwards([...awards, currentAward.current]);
                   currentAward.current = {
@@ -781,13 +787,11 @@ export default function Form() {
         <Modal
           type={modalType}
           onClose={() => setModalOpen(false)}
-          onDelete={() => 
-          {
+          onDelete={() => {
             setAwards(awards.filter((_, idx) => idx !== deleteId.current));
             setModalOpen(false);
             deleteId.current = null;
-          }
-          }
+          }}
         />
       )}
     </>

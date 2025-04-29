@@ -38,4 +38,3 @@ export interface Inputs {
   phone: string;
   institute: string;
 }
-

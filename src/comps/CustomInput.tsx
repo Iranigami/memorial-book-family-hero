@@ -14,7 +14,7 @@ export default function CustomInput({
   options,
   handleSelect,
   initValue,
-  unchanged
+  unchanged,
 }: Props) {
   const [isOptionsOpen, setOptionsOpen] = useState(false);
   const [value, setValue] = useState(initValue);
