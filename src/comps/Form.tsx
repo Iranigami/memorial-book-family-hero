@@ -34,6 +34,8 @@ export default function Form({
     formState: { errors },
   } = useForm<Inputs>();
 
+  const apiUrl = import.meta.env.VITE_API_URL;
+
   const onSubmit: SubmitHandler<Inputs> = (data) => {
     data.heroAward = JSON.stringify(awards);
     data.archive = archive;
@@ -45,7 +47,7 @@ export default function Form({
     }
     axios
       .post(
-        "https://book-memory-admin.itlabs.top/api/application_forms/add",
+        `${apiUrl}application_forms/add`,
         data,
         { headers: { "Content-Type": "multipart/form-data" } },
       )
@@ -76,17 +78,17 @@ export default function Form({
   useEffect(() => {
     setLoading(true);
     axios
-      .get("https://book-memory-admin.itlabs.top/api/hero_awards")
+      .get(`${apiUrl}hero_awards`)
       .then((response) => {
         setAwardsList(response.data);
       });
     axios
-      .get("https://book-memory-admin.itlabs.top/api/institutions")
+      .get(`${apiUrl}institutions`)
       .then((response) => {
         setInstitutionsList(response.data);
       });
     axios
-      .get("https://book-memory-admin.itlabs.top/api/military_ranks")
+      .get(`${apiUrl}military_ranks`)
       .then((response) => {
         setRanksList(response.data);
       });
@@ -347,7 +349,7 @@ export default function Form({
                   <Hint
                     id="rank"
                     text="Lorem Ipsum"
-                    className="translate-x-[-40px]"
+                    className="xl:translate-x-[-15px] translate-x-[-10px]"
                   />
                 </div>
                 <input hidden={true} {...register("militaryRank")} />
