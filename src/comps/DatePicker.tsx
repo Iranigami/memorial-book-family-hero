@@ -51,7 +51,7 @@ export default function DatePicker({ setDate }: Props) {
   };
   const currentDate = useRef({ day: "", month: "", year: "" });
   return (
-    <div className="flex gap-[8px] mt-[16px] relative z-0">
+    <div className="flex gap-[8px] mt-[16px] relative">
       <CustomInput
         options={days}
         handleSelect={(day) => {
@@ -59,7 +59,7 @@ export default function DatePicker({ setDate }: Props) {
           setDate(formatDate(currentDate.current));
         }}
         initValue={"День"}
-        className="xl:w-[106px] xl:h-[64px] border border-black-secondary rounded-[12px]"
+        className="lg:w-[106px] w-[87px] h-[64px] border border-black-secondary rounded-[12px]"
       />
       <CustomInput
         options={months}
@@ -68,7 +68,7 @@ export default function DatePicker({ setDate }: Props) {
           setDate(formatDate(currentDate.current));
         }}
         initValue={"Месяц"}
-        className="xl:w-[158px] xl:h-[64px] border border-black-secondary rounded-[12px]"
+        className="xl:w-[158px] lg:w-[190px] w-[125px] lg:h-[64px] border border-black-secondary rounded-[12px]"
       />
       <CustomInput
         options={years}
@@ -77,7 +77,7 @@ export default function DatePicker({ setDate }: Props) {
           setDate(formatDate(currentDate.current));
         }}
         initValue={"Год"}
-        className="xl:w-[116px] xl:h-[64px] border border-black-secondary rounded-[12px]"
+        className="xl:w-[116px] lg:w-[124px] w-[100px] lg:h-[64px] border border-black-secondary rounded-[12px]"
       />
     </div>
   );
