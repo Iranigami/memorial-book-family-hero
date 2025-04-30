@@ -14,6 +14,7 @@ import closeIcon from "../assets/icons/closeIcon.svg";
 import video from "../assets/icons/video.svg";
 import DatePicker from "./DatePicker";
 import Modal from "./Modal";
+import IMask from "imask";
 
 export default function Form() {
   const navigate = useNavigate();
@@ -28,27 +29,29 @@ export default function Form() {
   const apiUrl = import.meta.env.VITE_API_URL;
 
   const onSubmit: SubmitHandler<Inputs> = (data) => {
-    data.heroAward = JSON.stringify(awards);
+    data.heroAward = JSON.stringify(currentAward.current.title === null ? awards : [...awards, currentAward.current]);
     data.archive = archive;
     data.images = images;
+
 
     if (data.category === "Герои СВО") {
       setModalType("Наполнение информации будет доступно после окончания СВО");
       setModalOpen(true);
       return;
     }
-    axios
-      .post(`${apiUrl}application_forms/add`, data, {
-        headers: { "Content-Type": "multipart/form-data" },
-      })
-      .then(function () {
-        setModalType("success");
-        setModalOpen(true);
-      })
-      .catch(function (error) {
-        setModalType(error.message);
-        setModalOpen(true);
-      });
+    // axios
+    //   .post(`${apiUrl}application_forms/add`, data, {
+    //     headers: { "Content-Type": "multipart/form-data" },
+    //   })
+    //   .then(function () {
+    //     setModalType("success");
+    //     setModalOpen(true);
+    //   })
+    //   .catch(function (error) {
+    //     setModalType(error.message);
+    //     setModalOpen(true);
+    //   });
+    console.log(data);
   };
   const [isModalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState("");
@@ -69,6 +72,14 @@ export default function Form() {
   const [awardInput, setAwardInput] = useState(false); //for reset award input
   const [awardError, setAwardError] = useState(false);
   const deleteId = useRef<number | null>(null);
+  const phoneInput = document.getElementById("phone") as HTMLInputElement; 
+  var phoneMask;
+  if (phoneInput)
+  {
+    phoneMask = IMask(phoneInput, {
+      mask: '+{7} (000) 000-00-00'
+    });
+  }
 
   useEffect(() => {
     setLoading(true);
@@ -83,6 +94,7 @@ export default function Form() {
     });
     setLoading(false);
   }, []);
+  
 
   return (
     <>
@@ -690,10 +702,12 @@ export default function Form() {
                   <div className="text-red-accent">*</div>
                 </div>
                 <input
+                  id="phone"
+                  type="tel"
                   placeholder="+7 (912) 999 99-99"
                   autoComplete="off"
                   {...register("phone", { required: true })}
-                  className={`${errors.phone ? "border-red" : "border-black-secondary"} xl:w-[396px] lg:w-[436px] w-[328px] h-[64px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-center items-center text-left lg:pl-[20px] pl-[12px] border`}
+                  className={`${errors.phone ? "border-red" : "border-black-secondary"} phone xl:w-[396px] lg:w-[436px] w-[328px] h-[64px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-center items-center text-left lg:pl-[20px] pl-[12px] border`}
                 />
                 {errors.phone && (
                   <div className="font-roboto font-normal text-[12px] text-red">
