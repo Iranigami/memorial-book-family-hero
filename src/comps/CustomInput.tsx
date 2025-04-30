@@ -25,7 +25,7 @@ export default function CustomInput({
         onClick={() => setOptionsOpen(!isOptionsOpen)}
         className={`${value === initValue || unchanged ? "text-black-third" : "text-black-primary"} relative unselectable w-full h-full select-bg lg:text-[16px] text-[14px] font-normal font-roboto rounded-[12px] flex justify-left items-center text-left lg:px-[20px] px-[12px]`}
       >
-        {value}
+        {!unchanged ? value : "Выберите название награды"}
       </div>
       {isOptionsOpen && (
         <div
@@ -39,7 +39,7 @@ export default function CustomInput({
                 handleSelect(option.title);
                 setOptionsOpen(false);
               }}
-              className={`${option.title === value && "bg-[#80011F0D] text-red-accent font-bold"} mb-[4px] lg:mb-[8px] unselectable h-[34px] lg:h-[45px] p-[12px] text-left flex items-center lg:text-[16px] text-[14px] font-normal font-roboto rounded-[12px] `}
+              className={`${option.title === value && !unchanged && "bg-[#80011F0D] text-red-accent font-bold"} mb-[4px] lg:mb-[8px] unselectable h-[34px] lg:h-[45px] p-[12px] text-left flex items-center lg:text-[16px] text-[14px] font-normal font-roboto rounded-[12px] `}
             >
               {option.title}
             </div>
