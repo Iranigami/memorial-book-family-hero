@@ -17,12 +17,33 @@ import Modal from "./Modal";
 import IMask from "imask";
 
 export default function Form() {
+  const resetForm = () => {
+    setImages([]);
+    setAwards([]);
+    setArchive([]);
+    currentAward.current = {
+      id: 0,
+      title: null,
+      yearAt: "",
+      description: "",
+    };
+    setAwardInput(true);
+    setShownImage(0);
+    setAwardError(false);
+    setResetBirthDate(true);
+    setResetDeathDate(true);
+    setResetCategoryInput(true);
+    setResetRankInput(true);
+    setResetInstituteInput(true);
+    reset();
+  }
   const navigate = useNavigate();
   const [isLoading, setLoading] = useState(true);
   const {
     register,
     handleSubmit,
     setValue,
+    reset,
     formState: { errors },
   } = useForm<Inputs>();
 
@@ -39,19 +60,20 @@ export default function Form() {
       setModalOpen(true);
       return;
     }
-    // axios
-    //   .post(`${apiUrl}application_forms/add`, data, {
-    //     headers: { "Content-Type": "multipart/form-data" },
-    //   })
-    //   .then(function () {
-    //     setModalType("success");
-    //     setModalOpen(true);
-    //   })
-    //   .catch(function (error) {
-    //     setModalType(error.message);
-    //     setModalOpen(true);
-    //   });
-    console.log(data);
+    axios
+      .post(`${apiUrl}application_forms/add`, data, {
+        headers: { "Content-Type": "multipart/form-data" },
+      })
+      .then(function () {
+        resetForm();
+        setModalType("success");
+        setModalOpen(true);
+      })
+      .catch(function (error) {
+        setModalType(error.message);
+        setModalOpen(true);
+      });
+
   };
   const [isModalOpen, setModalOpen] = useState(false);
   const [modalType, setModalType] = useState("");
@@ -70,13 +92,17 @@ export default function Form() {
   const [awards, setAwards] = useState<Award[]>([]);
   const [currentCategory, setCurrentCategory] = useState<string>();
   const [awardInput, setAwardInput] = useState(false); //for reset award input
+  const [resetCategoryInput, setResetCategoryInput] = useState(false); 
+  const [resetRankInput, setResetRankInput] = useState(false); 
+  const [resetInstituteInput, setResetInstituteInput] = useState(false); 
+  const [resetBirthDate, setResetBirthDate] = useState(false); 
+  const [resetDeathDate, setResetDeathDate] = useState(false); 
   const [awardError, setAwardError] = useState(false);
   const deleteId = useRef<number | null>(null);
   const phoneInput = document.getElementById("phone") as HTMLInputElement; 
-  var phoneMask;
   if (phoneInput)
   {
-    phoneMask = IMask(phoneInput, {
+    IMask(phoneInput, {
       mask: '+{7} (000) 000-00-00'
     });
   }
@@ -308,8 +334,10 @@ export default function Form() {
                 />
 
                 <CustomInput
+                  unchanged={resetCategoryInput}
                   initValue="Герои Великой Отечественнoй войны"
                   handleSelect={(value) => {
+                    setResetCategoryInput(false);
                     setValue("category", value);
                     setCurrentCategory(value);
                   }}
@@ -358,8 +386,10 @@ export default function Form() {
                 </div>
                 <input hidden={true} {...register("militaryRank")} />
                 <CustomInput
+                  unchanged={resetRankInput}
                   initValue="Майoр"
                   handleSelect={(value) => {
+                    setResetRankInput(false);
                     setValue("militaryRank", value);
                   }}
                   className="xl:w-[396px] lg:w-[436px] w-[328px] lg:h-[61px] h-[58px] mt-[16px] rounded-[12px] border border-black-secondary"
@@ -381,7 +411,7 @@ export default function Form() {
                   autoComplete="off"
                   className="xl:w-[396px] lg:w-[436px] w-[328px] lg:h-[61px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-center items-center text-left lg:pl-[20px] pl-[12px] border border-black-secondary"
                 />
-                <DatePicker setDate={(date) => setValue("birthDateAt", date)} />
+                <DatePicker reset={resetBirthDate} setDate={(date) => {setValue("birthDateAt", date); setResetBirthDate(false);}} />
               </div>
               <div className="lg:mt-0 mt-[24px]">
                 <div className="gap-[16px] xl:text-[24px] text-[20px] justify-left flex font-roboto leading-[100%] font-bold">
@@ -394,7 +424,7 @@ export default function Form() {
                   autoComplete="off"
                   className="xl:w-[396px] lg:w-[436px] w-[328px] lg:h-[61px] h-[58px] mt-[16px] text-[16px] font-normal font-roboto rounded-[12px] flex justify-center items-center text-left lg:pl-[20px] pl-[12px] border border-black-secondary"
                 />
-                <DatePicker setDate={(date) => setValue("deathDateAt", date)} />
+                <DatePicker reset={resetDeathDate} setDate={(date) => {setValue("deathDateAt", date); setResetDeathDate(false);}} />
               </div>
             </div>
           </div>
@@ -753,8 +783,10 @@ export default function Form() {
                   hidden={true}
                 />
                 <CustomInput
+                  unchanged={resetInstituteInput}
                   initValue="Название организации"
                   handleSelect={(value) => {
+                    setResetInstituteInput(false);
                     setValue("institute", value);
                   }}
                   className={`z-[0] xl:w-[396px] lg:w-[436px] w-[328px] lg:h-[61px] h-[58px] mt-[16px] rounded-[12px] ${errors.institute ? "border border-red" : "border border-black-primary"}`}

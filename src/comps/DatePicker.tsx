@@ -28,6 +28,7 @@ for (let i = 2025; i > 1850; i--) years.push({ title: String(i) });
 
 type Props = {
   setDate: (date: string) => void;
+  reset?: boolean;
 };
 
 export default function DatePicker({ setDate }: Props) {

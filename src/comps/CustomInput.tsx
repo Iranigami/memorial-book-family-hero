@@ -25,7 +25,7 @@ export default function CustomInput({
         onClick={() => setOptionsOpen(!isOptionsOpen)}
         className={`${value === initValue || unchanged ? "text-black-third" : "text-black-primary"} relative unselectable w-full h-full select-bg lg:text-[16px] text-[14px] font-normal font-roboto rounded-[12px] flex justify-left items-center text-left lg:px-[20px] px-[12px]`}
       >
-        {!unchanged ? value : "Выберите название награды"}
+        {!unchanged ? value : initValue}
       </div>
       {isOptionsOpen && (
         <div
